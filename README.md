@@ -1,6 +1,6 @@
-# Shiny Application and Preprocessing of Energydata for Visual Exploration
+# Application for the visual exploration of energy data
 
-The goal of this project is to develope an application for the visual exploration of energy data. Data comes from 70 households and was collected over one year with a 15min temporal resolution. Electricity consumption is measured.
+The goal of this project is to develope an application for the visual exploration of energy data. The data represents the electricity consumption of 70 households in the [Suurstoffi](https://www.suurstoffi.ch/) site and was collected over one year (March 2013 to March 2014) with a temporal resolution of 15min (appr. 35'000 measurements per household). The application is uploaded to shinyapps.io; https://igesaga.shinyapps.io/enerdatexplorer/.
 
 ## Authors
 
