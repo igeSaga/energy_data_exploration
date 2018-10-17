@@ -4,27 +4,22 @@ library(reshape2)
 library(dplyr)
 library(xts)
 
-load("../output/allData.Rdata")
+load("output/allDataAggH_13_15.Rdata")
+
+codes<-read.csv("data/sensor_codes.csv")
+codes<-codes[codes$type=="whg",]
+codes.l<-paste("whg nr: ",1:nrow(codes)," (haus nr; ",codes$house,", / fl; ",codes$fl," / zim; ",codes$zimmer,")",sep="")
+
+meanApp<-apply(allData,1,function(x){median(x,na.rm=T)})
 
 function(input, output) {
   
-  time<-as.POSIXct(as.character(rownames(allData)), format="%d.%m.%Y %H:%M", tz = "GMT")
-  attributes(time)$tzone <- "Europe/Zurich"
-  time<-time - 3600
+  time<-as.POSIXct(rownames(allData))
   
   allData.s<-allData
   allData.s[allData==0]<-NA
   meanTime<-apply(allData.s,1,function(x) mean(x, na.rm=T))
   allData.rel<-allData-meanTime
-  
-  # qu.all<-quantile(allData,na.rm=T,probs = seq(0,1,by = 0.1))
-  # qu.all.rel<-quantile(allData.rel,na.rm=T,probs = seq(0,1,by = 0.1))
-  # 
-  # lab.all<-paste(round(qu.all,2),round(qu.all[-1],2),sep="-")
-  # lab.all<-lab.all[1:(length(lab.all)-1)]
-  # 
-  # lab.all.rel<-paste(round(qu.all.rel,2),round(qu.all.rel[-1],2),sep="-")
-  # lab.all.rel<-lab.all.rel[1:(length(lab.all.rel)-1)]
   
   dat.all <- reactive({
     dat<-allData
@@ -43,15 +38,15 @@ function(input, output) {
     dat
   })
   
-  # dat.reclass <- reactive({
-  #   dat<-dat.prep()
-  #   rec<-cut(dat,breaks = qu.all, labels = lab.all)
-  #   if(input$relAbsId=="rel"){
-  #     rec<-cut(dat,breaks = qu.all.rel, labels = lab.all.rel)
-  #   }
-  #   names(rec)<-names(dat)
-  #   rec
-  # })
+  dats.prep <- eventReactive(input$go,{
+    ind <- as.character(input$houseIds)
+    ind <- strtrim(ind,10)
+    ind<-as.numeric(gsub("whg nr: ","",ind))
+    dat<-dat.all()
+    dat<-dat[,ind]
+    colnames(dat)<-codes.l[ind]
+    dat
+  })
   
   app.name <- reactive({
     ind <- as.character(input$houseId)
@@ -133,20 +128,12 @@ function(input, output) {
       dat.s<-dat.prep()
     }
     
-    lo<-3000
-    if(length(time.s<3000)){
-      lo<-length(time.s)
-    }
-    
-    time.s<-time.s[seq(from=1, to=length(time.s), length.out = lo)]
-    dat.s<-dat.s[seq(from=1, to=length(time.s), length.out = lo)]
-    
     dat.s<-data.frame(time=time.s,kWh=dat.s)
     
     ggplot(dat.s, aes(x = time.s, y = kWh)) +
       geom_path()+
       theme_minimal()+
-      ylab("kWh/15min")
+      ylab("kWh")
     })
   
   output$plot4 <- renderPlot({
@@ -188,12 +175,84 @@ function(input, output) {
       minhm<-min(dat.hm$kWh,na.rm=T)
       maxhm<-max(dat.hm$kWh,na.rm=T)
       p2<-p1+scale_fill_gradient2(low = "blue", mid = "white",
-                              high = "red", midpoint = 0, name = "kWh/15min")
+                              high = "red", midpoint = 0, name = "kWh")
     }else{
-      p2<-p1+scale_fill_gradientn(colours=c("black","yellow","red"), name = "kWh/15min")
+      p2<-p1+scale_fill_gradientn(colours=c("black","yellow","red"), name = "kWh")
     }
     p2
 
+  })
+  
+  output$plot5 <- renderPlot({
+    dat.s<-dats.prep()
+    
+    allData.l<-melt(dat.s)
+    names(allData.l)<-c("time","appart","energy")
+    
+    allData.l<-rbind(allData.l,data.frame(time=row.names(dat.s),appart=rep(NA,nrow(dat.s)),energy=meanApp))
+    
+    time2<-as.POSIXct(allData.l$time)
+    allData.l$index<-time2
+    
+    allData.l<-allData.l%>%
+      mutate(hour=as.numeric(strftime(index, format="%H")),
+             weekDay=lubridate::wday(as.Date(index),week_start=1),
+             week = as.numeric(format(as.Date(index),"%W")),
+             month = as.numeric(format(as.Date(index),"%m")),
+             season = cut(month,breaks = seq(0,12,by = 2),labels = c(1,2,3,3,4,1)),
+             year = as.numeric(format(as.Date(index),"%Y")),
+             MonthTag=factor(month,levels=as.character(1:12),
+                             labels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"),
+                             ordered=TRUE),
+             Wday=lubridate::wday(as.Date(index),week_start=1),
+             WdayTag=factor(Wday,levels=rev(1:7),
+                            labels=rev(c("Mon","Tue","Wed","Thu","Fri","Sat","Sun")),
+                            ordered=TRUE))
+    
+    levels(allData.l$season)<-c("Winter","Spring","Summer","Autumn")
+    
+    if(input$seasonId=="hour"){
+      allData.agg<-allData.l%>%
+        group_by(appart,hour)%>%
+        summarise(energy=median(energy,na.rm=T))
+      
+      p1<-ggplot(allData.agg)+
+        geom_path(aes(x=hour,y=energy, color=appart))+
+        labs(x="time of day", y="kWh")+
+        theme_minimal()+
+        theme(axis.text.x = element_text(colour="grey20",size=6,angle=90,hjust=.5,vjust=.5,face="plain"))+
+        scale_color_discrete(na.value="black")
+    }
+    
+    if(input$seasonId=="hourDay"){
+      allData.agg<-allData.l%>%
+        group_by(appart,hour,WdayTag)%>%
+        summarise(energy=median(energy,na.rm=T))
+      
+      p1<-ggplot(allData.agg)+
+        geom_path(aes(x=hour,y=energy, color=appart))+
+        facet_wrap(.~WdayTag,nrow = 1)+
+        labs(x="time of day", y="kWh")+
+        theme_minimal()+
+        theme(axis.text.x = element_text(colour="grey20",size=6,angle=90,hjust=.5,vjust=.5,face="plain"))+
+        scale_color_discrete(na.value="black")
+    }
+    
+    if(input$seasonId=="hourDaySeas"){
+      allData.agg<-allData.l%>%
+        group_by(appart,hour,WdayTag,season)%>%
+        summarise(energy=median(energy,na.rm=T))
+      
+      p1<- ggplot(allData.agg)+
+        geom_path(aes(x=hour,y=energy,color=appart))+
+        facet_grid(season~WdayTag)+
+        labs(x="time of day", y="kWh")+
+        theme_minimal()+
+        theme(axis.text.x = element_text(colour="grey20",size=6,angle=90,hjust=.5,vjust=.5,face="plain"))+
+        scale_color_discrete(na.value="black")
+    }
+    p1
+    
   })
   
   observe({
