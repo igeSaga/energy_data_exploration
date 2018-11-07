@@ -4,9 +4,9 @@ library(reshape2)
 library(dplyr)
 library(xts)
 
-load("output/allDataAggH_13_15.Rdata")
+load("../externalData/allDataAggH_13_15.Rdata")
 
-codes<-read.csv("data/sensor_codes.csv")
+codes<-read.csv("../externalData/sensor_codes.csv")
 codes<-codes[codes$type=="whg",]
 codes.l<-paste("whg nr: ",1:nrow(codes)," (haus nr; ",codes$house,", / fl; ",codes$fl," / zim; ",codes$zimmer,")",sep="")
 
