@@ -248,11 +248,15 @@ function(input, output) {
         facet_grid(season~WdayTag)+
         labs(x="time of day", y="kWh")+
         theme_minimal()+
-        theme(axis.text.x = element_text(colour="grey20",size=6,angle=90,hjust=.5,vjust=.5,face="plain"))+
+        theme(axis.text.x = element_text(colour="grey20",
+                                         size=6,angle=90,hjust=.5,
+                                         vjust=.5,face="plain"),
+              legend.position = "none")+
         scale_color_discrete(na.value="black")
     }
     p1
-    
+    # ggsave(p1,filename = "../../temp/seasonPlot.png",
+    #        width = 25,height=15,units = "cm",dpi = 800)
   })
   
   observe({
