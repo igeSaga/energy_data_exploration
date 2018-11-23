@@ -6,9 +6,7 @@ library(xts)
 
 load("../externalData/allDataAggH_13_15.Rdata")
 
-codes<-read.csv("../externalData/sensor_codes.csv")
-codes<-codes[codes$type=="whg",]
-codes.l<-paste("whg nr: ",1:nrow(codes)," (haus nr; ",codes$house,", / fl; ",codes$fl," / zim; ",codes$zimmer,")",sep="")
+codes.l<-colnames(allData)
 
 meanApp<-apply(allData,1,function(x){median(x,na.rm=T)})
 
@@ -31,8 +29,6 @@ function(input, output) {
 
   dat.prep <- reactive({
     ind <- as.character(input$houseId)
-    ind <- strtrim(ind,10)
-    ind<-as.numeric(gsub("whg nr: ","",ind))
     dat<-dat.all()
     dat<-dat[,ind]
     dat
@@ -40,18 +36,13 @@ function(input, output) {
   
   dats.prep <- eventReactive(input$go,{
     ind <- as.character(input$houseIds)
-    ind <- strtrim(ind,10)
-    ind<-as.numeric(gsub("whg nr: ","",ind))
     dat<-dat.all()
     dat<-dat[,ind]
-    colnames(dat)<-codes.l[ind]
     dat
   })
   
   app.name <- reactive({
     ind <- as.character(input$houseId)
-    ind <- strtrim(ind,10)
-    ind<-as.numeric(gsub("whg nr: ","",ind))
     dat<-dat.all()
     appName<-colnames(dat)[ind]
     appName
@@ -60,7 +51,7 @@ function(input, output) {
   dat.agg.day <- reactive({
     xts.ts <- xts(dat.prep(),time)
     colnames(xts.ts)<-'kWh'
-    
+   
     dat.agg<-as.data.frame(apply.daily(xts.ts,sum))
     dat.agg$time<-as.Date(row.names(dat.agg))
     dat.agg

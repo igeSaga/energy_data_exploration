@@ -1,5 +1,10 @@
 # Application for visually exploring energy data
-The goal of this project is to develope an application for the visual exploration of energy data. Energy data is represented by the electricity consumption of some 70 households in the [Suurstoffi](https://www.suurstoffi.ch/) district and was collected over 2.5 years (Spring 2013 to Autumn 2015) with a temporal resolution of 15min (appr. 35'000 measurements per household). The application is available on shinyapps.io; https://curdon.shinyapps.io/enerdataexpl/.
+The goal of this project is to develope an application for the visual exploration of energy data. As an example of energy data, the electricity consumption of households in the [Suurstoffi](https://www.suurstoffi.ch/) district is used. The data was collected over 2.5 years - from spring 2013 to autumn 2015 - with a temporal resolution of 15min (appr. 35'000 measurements per household). The application is implemented as a ShinyApp.
+
+## Requironments
+The input data is not attached to this repository, due to privacy issues. However, the application can be changed, such that different input data can be read and visualized.
+
+The input data should be a matrix, with row-names refering to time-stamps and column-names representing labels of different sensors (or households, as in our case).
 
 ## Authors
 * **Curdin Derungs** - *Initial work* - [curdon](https://github.com/curdon)

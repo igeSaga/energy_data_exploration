@@ -1,8 +1,7 @@
 library(shiny)
 
-codes<-read.csv("../externalData/sensor_codes.csv")
-codes<-codes[codes$type=="whg",]
-codes.l<-paste("whg nr: ",1:nrow(codes)," (haus nr; ",codes$house,", / fl; ",codes$fl," / zim; ",codes$zimmer,")",sep="")
+load("../externalData/allDataAggH_13_15.Rdata")
+codes.l<-colnames(allData)
 
   fluidPage(title = "Variables affecting Syntactic Distance in Switzerland",
             
@@ -13,7 +12,7 @@ codes.l<-paste("whg nr: ",1:nrow(codes)," (haus nr; ",codes$house,", / fl; ",cod
                          headerPanel("Visuelle und Explorative Analyse von Energiedaten"),
                          sidebarPanel(width=12,
                                       h3("Hintergrund:"),
-                                      h5("Im Sommer 2018 hat die HSLU T&A der Gruppe SAGA die Finanzierung von 40 Stunden Arbeitszeit zur Umsetzung eines Innovationsprojektes gesprochen.
+                                      h5("Im Sommer 2018 hat die Hochschule Luzern Technik & Architektur der Gruppe 'Simulation und Analyse von Gebaeuden und Arealen' die Finanzierung von 40 Stunden Arbeitszeit zur Umsetzung eines Innovationsprojektes gesprochen.
                                          Das Innovationsprojekt ist im Themenbereich 'Explorative Analyse von Monitoringdaten' angesiedelt.
                                          Innerhalb der Projektgruppe wurde beschlossen, das Thema als interaktive Applikation umzusetzen."),
                                       h3("Explorative Analyse von Energie-Monitoring Daten:"),
