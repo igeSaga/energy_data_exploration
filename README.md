@@ -7,7 +7,7 @@ The project consists of three scripts:
 * ui.R: User interface of the ShinyApp
 * server.R: Functionality of Shiny App
 
-## Requironments
+## Requirements
 The input data is not attached to this repository, due to privacy issues. However, the application can be changed, such that different input data can be read and visualized.
 
 The input data should be a matrix, with row-names refering to time-stamps and column-names representing labels of different sensors (or households, as in our case).
