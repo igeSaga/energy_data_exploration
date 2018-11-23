@@ -1,13 +1,18 @@
+#### Description
+## Definition of the data processing part of the ShinyApp
+
+#loading library
 library(ggplot2)
 library(shiny)
 library(reshape2)
 library(dplyr)
 library(xts)
 
+#reading data
 load("../externalData/allDataAggH_13_15.Rdata")
-
 codes.l<-colnames(allData)
 
+#generating a mean-profile, i.e. mean energy-use over all sensors/households for each time-stamp
 meanApp<-apply(allData,1,function(x){median(x,na.rm=T)})
 
 function(input, output) {

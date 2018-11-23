@@ -1,5 +1,10 @@
+#### Description
+## Definition of the User Interface of the ShinyApp
+
+#loading library
 library(shiny)
 
+#reading data
 load("../externalData/allDataAggH_13_15.Rdata")
 codes.l<-colnames(allData)
 
